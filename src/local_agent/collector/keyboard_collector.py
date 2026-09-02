@@ -11,11 +11,9 @@ class Keyboard_collector:
     def on_press(self, key):
         timestamp = time.time()
         key_id = str(key)
-        # Store press time only if this key is not already pressed
         if key_id in self.pressed_keys:
             return
         self.pressed_keys[key_id] = timestamp
-        # Calculate flight/pause only once after a release
         if self.last_release_time is not None:
             time_gap = timestamp - self.last_release_time
             if time_gap <= self.max_flight_time:
@@ -35,10 +33,8 @@ class Keyboard_collector:
                     }
                 }
             self.event_callback(event)
-            # Prevent the same release from generating
-            # multiple flight/pause events.
+   
             self.last_release_time = None
-        # Send normal key press event
         event = {
             "event_type": "keyboard_press",
             "timestamp": timestamp,
