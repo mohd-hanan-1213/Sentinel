@@ -7,7 +7,6 @@ from src.local_agent.buffer.event_buffer import EventBuffer
 def handle_event(event):
     event_buffer.add_event(event)
 
-    # Temporary: print events so we can verify everything works
     print(event)
 
 
