@@ -1,82 +1,164 @@
 import time
+import math
 from pynput import mouse
-class Mouse_collector:
-    def __init__(self,event_callback):
-        self.event_callback=event_callback
-        self.listener=None
 
-    def on_move(self,x,y):
+
+class Mouse_collector:
+
+    def __init__(self, event_callback):
+        self.event_callback = event_callback
+
+        # Movement state
+        self.last_position = None
+        self.last_moveTime = None
+
+        # Button -> press timestamp
+        self.click_press_times = {}
+
+        self.listener = None
+
+    def on_move(self, x, y):
         timestamp = time.time()
+
+        # First observed position.
+        # This is initialization, not a movement.
+        if self.last_position is None:
+            self.last_position = (x, y)
+            self.last_moveTime = timestamp
+            return
+
+        last_x, last_y = self.last_position
+
+        # Calculate movement distance.
+        dist = math.hypot(
+            x - last_x,
+            y - last_y
+        )
+
+        # Calculate elapsed time.
+        time_difference = timestamp - self.last_moveTime
+
+        # Calculate speed.
+        if time_difference > 0:
+            speed = dist / time_difference
+        else:
+            speed = 0.0
+
         event = {
             "event_type": "mouse_move",
             "timestamp": timestamp,
             "data": {
                 "x": x,
-                "y": y
+                "y": y,
+                "distance": dist,
+                "speed": speed
             }
         }
-        self.event_callback(event)
-    def on_click(self,x,y,button,pressed):
-        timestamp=time.time()
-        event_type=(
-            "mouse_click_press"
-            if pressed
-            else "mouse_click_release"
-        )
-        event={
-            "event_type":event_type,
-            "timestamp":timestamp,
-            "data":{
-                "x":x,
-                "y":y,
-                "button":str(button)
-            }
-        }
+
         self.event_callback(event)
 
-    def on_scroll(self,x,y,dx,dy):
-        timestamp=time.time()
-        event={
-            "event_type":"mouse_scrooll",
-            "timestamp":timestamp,
-            "data":{
-                "dx":dx,
-                "dy":dy
+        # Update movement state.
+        self.last_position = (x, y)
+        self.last_moveTime = timestamp
+
+    def on_click(self, x, y, button, pressed):
+        timestamp = time.time()
+        button_id = str(button)
+
+        if pressed:
+
+            # Store exact press timestamp.
+            self.click_press_times[button_id] = timestamp
+
+            event = {
+                "event_type": "mouse_click_press",
+                "timestamp": timestamp,
+                "data": {
+                    "x": x,
+                    "y": y,
+                    "button": button_id
+                }
+            }
+
+            self.event_callback(event)
+
+        else:
+
+            # Retrieve matching press timestamp.
+            press_time = self.click_press_times.pop(
+                button_id,
+                None
+            )
+
+            click_duration = None
+
+            if press_time is not None:
+                click_duration = timestamp - press_time
+
+            event = {
+                "event_type": "mouse_click_release",
+                "timestamp": timestamp,
+                "data": {
+                    "x": x,
+                    "y": y,
+                    "button": button_id,
+                    "click_duration": click_duration
+                }
+            }
+
+            self.event_callback(event)
+
+    def on_scroll(self, x, y, dx, dy):
+        timestamp = time.time()
+
+        event = {
+            "event_type": "mouse_scroll",
+            "timestamp": timestamp,
+            "data": {
+                "x": x,
+                "y": y,
+                "dx": dx,
+                "dy": dy
             }
         }
+
         self.event_callback(event)
 
     def start(self):
-        self.listener=mouse.Listener(
+        self.listener = mouse.Listener(
             on_move=self.on_move,
             on_click=self.on_click,
             on_scroll=self.on_scroll
         )
+
         self.listener.start()
 
     def stop(self):
         if self.listener is not None:
             self.listener.stop()
+            self.listener = None
 
 
+# if __name__ == "__main__":
 
-if __name__ == "__main__":
+#     def print_event(event):
+#         print(event)
 
-    def print_event(event):
-        print(event)
+#     collector = Mouse_collector(print_event)
 
-    collector = Mouse_collector(print_event)
+#     collector.start()
 
-    collector.start()
+#     print(
+#         "Mouse collector started. "
+#         "Move, click, or scroll. "
+#         "Press Ctrl+C to stop."
+#     )
 
-    print("Mouse collector started. Move, click, or scroll. Press Ctrl+C to stop.")
+#     try:
+#         while True:
+#             time.sleep(1)
 
-    try:
-        while True:
-            time.sleep(1)
+#     except KeyboardInterrupt:
+#         collector.stop()
 
-    except KeyboardInterrupt:
-
-        collector.stop()
-
-        print("\nMouse collector stopped.")
+#         print("\nMouse collector stopped.")
