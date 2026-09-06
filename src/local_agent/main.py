@@ -11,7 +11,7 @@ SAMPLE_INTERVAL = 30
 
 
 def main():
-    # ----------------------------------------------------------
+
 
     event_buffer = EventBuffer()
     feature_extractor = FeatureExtractor()
@@ -44,7 +44,10 @@ def main():
 
             current_time = time.time()
 
-            if current_time - last_sample_time >= SAMPLE_INTERVAL:
+            if (
+                current_time - last_sample_time
+                >= SAMPLE_INTERVAL
+            ):
 
                 # Get events for this sampling interval
                 events = event_buffer.get_and_clear_events()
@@ -52,6 +55,10 @@ def main():
                 if events:
 
                     features = feature_extractor.extract(events)
+
+                    # --------------------------------------------------
+                    # Add behavioral sample
+                    # --------------------------------------------------
 
                     behavioral_profile.add_sample(features)
 
@@ -68,6 +75,7 @@ def main():
                     print(
                         behavioral_profile.get_baseline()
                     )
+
                     print("\nCurrent Statistics:")
 
                     print(
@@ -81,7 +89,6 @@ def main():
                         "during interval."
                     )
 
-                # Reset sampling timer
                 last_sample_time = current_time
 
     except KeyboardInterrupt:
@@ -95,7 +102,6 @@ def main():
 
         print("Keyboard collector stopped.")
         print("Mouse collector stopped.")
-
         print("\n==============================")
         print("Sentinel stopped.")
         print("==============================")
@@ -110,7 +116,6 @@ def main():
         print(
             behavioral_profile.get_baseline()
         )
-
 
         print("\nFinal Behavioral Statistics:")
 
