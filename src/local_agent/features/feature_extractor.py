@@ -32,10 +32,20 @@ class FeatureExtractor:
         keyboard_features = self._extract_keyboard_features(events)
         mouse_features = self._extract_mouse_features(events)
 
-        return {
-            "keyboard": keyboard_features,
-            "mouse": mouse_features,
-        }
+        return [
+            keyboard_features["average_hold_time"],
+            keyboard_features["average_flight_time"],
+            keyboard_features["typing_speed"],
+            keyboard_features["average_pause_duration"],
+            keyboard_features["correction_rate"],
+            mouse_features["average_speed"],
+            mouse_features["average_distance"],
+            mouse_features["average_click_duration"],
+            mouse_features["average_acceleration"],
+            mouse_features["direction_changes"],
+            mouse_features["click_rate"],
+            mouse_features["idle_ratio"],
+        ]
 
     def _preprocess_events(self, events):
         """
@@ -348,7 +358,7 @@ class FeatureExtractor:
             if angle_difference > math.pi:
                 angle_difference = 2 * math.pi - angle_difference
 
-            # A change greater than 45 degrees
+            # A change greater than 45 degrees.
             # is treated as a direction change.
             if angle_difference >= math.pi / 4:
                 direction_changes += 1
