@@ -5,7 +5,7 @@ class FeatureExtractor:
 
     # Movement below this distance is treated as insignificant
     # when calculating direction changes.
-    MIN_MOVEMENT_DISTANCE = 1.0
+    MIN_MOVEMENT_DISTANCE = 0.001
 
     # A mouse movement gap greater than this is considered idle.
     IDLE_THRESHOLD = 1.0
