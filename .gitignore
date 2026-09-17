@@ -26,8 +26,12 @@ data/
 # OS files
 .DS_Store
 Thumbs.db
+
 # Test cache
 .pytest_cache/
+
+#model
+models/
 
 # Tests
 tests/

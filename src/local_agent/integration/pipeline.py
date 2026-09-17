@@ -8,16 +8,11 @@ from src.local_agent.database.models import Evidence, RiskEvent, SecurityEvent, 
 from src.local_agent.response.behavioral_lock import BehavioralLock
 from src.local_agent.response.response_engine import ResponseEngine
 from src.local_agent.risk.risk_engine import RiskEngine
+from src.ml.authentication_pipeline import MODE_ACTIVE, MODE_ENROLMENT
+from src.ml.feature_contract import flatten_feature_dict, validate_feature_vector
 
 
-FEATURE_ORDER = (
-    "keyboard.average_hold_time", "keyboard.average_flight_time",
-    "keyboard.typing_speed", "keyboard.average_pause_duration",
-    "keyboard.correction_rate", "mouse.average_speed",
-    "mouse.average_distance", "mouse.average_click_duration",
-    "mouse.average_acceleration", "mouse.direction_changes",
-    "mouse.click_rate", "mouse.idle_ratio",
-)
+ENROLMENT_RESPONSE = "ENROLMENT_IN_PROGRESS"
 
 
 class SentinelPipeline:
@@ -34,21 +29,23 @@ class SentinelPipeline:
     @staticmethod
     def _load_member3_analyzer():
         try:
-            from src.ml.behavior_authenticator import BehaviorAuthenticator
+            from src.ml.authentication_pipeline import AuthenticationPipeline
         except ImportError as error:
             raise RuntimeError(
                 "Member 3 ML module is not available. Merge origin/ml_model "
                 "before starting the Sentinel pipeline."
             ) from error
-        return BehaviorAuthenticator()
+        return AuthenticationPipeline()
 
     @staticmethod
     def flatten_features(features):
-        try:
-            return [float(features[group][name]) for group, name in
-                    (item.split('.', 1) for item in FEATURE_ORDER)]
-        except (KeyError, TypeError, ValueError) as error:
-            raise ValueError("Feature window does not meet the Member 3 contract.") from error
+        if isinstance(features, (list, tuple)):
+            return validate_feature_vector(features)
+
+        if isinstance(features, dict):
+            return flatten_feature_dict(features)
+
+        raise ValueError("Feature window does not meet the Member 3 contract.")
 
     def start_session(self, user_id):
         with SessionLocal() as db:
@@ -59,7 +56,14 @@ class SentinelPipeline:
 
     def process_features(self, session_id, features):
         vector = self.flatten_features(features)
-        ml_output = self.analyzer.analyze_for_risk_engine(vector)
+        ml_output = self._process_with_member3(vector)
+
+        if ml_output.get("mode") == MODE_ENROLMENT:
+            return self._build_enrolment_output(ml_output)
+
+        if ml_output.get("mode") == MODE_ACTIVE and ml_output.get("model_trained"):
+            return self._build_model_ready_output(ml_output)
+
         risk_result = self.risk_engine.calculate_risk(ml_output)
         response = self.response_engine.determine_action(risk_result)
         captured_at = datetime.utcnow()
@@ -86,6 +90,50 @@ class SentinelPipeline:
         else:
             response["windows_locked"] = False
         return {"ml_output": ml_output, "risk": risk_result, "response": response}
+
+    def _process_with_member3(self, vector):
+        if hasattr(self.analyzer, "process_feature_vector"):
+            return self.analyzer.process_feature_vector(vector)
+
+        if hasattr(self.analyzer, "analyze_for_risk_engine"):
+            return self.analyzer.analyze_for_risk_engine(vector)
+
+        raise RuntimeError(
+            "Member 3 analyzer must provide process_feature_vector() "
+            "or analyze_for_risk_engine()."
+        )
+
+    @staticmethod
+    def _build_enrolment_output(ml_output):
+        response = {
+            "action": ENROLMENT_RESPONSE,
+            "risk_level": MODE_ENROLMENT,
+            "lock_required": False,
+            "windows_locked": False,
+            "profile_update_allowed": True,
+        }
+
+        return {
+            "ml_output": ml_output,
+            "risk": None,
+            "response": response,
+        }
+
+    @staticmethod
+    def _build_model_ready_output(ml_output):
+        response = {
+            "action": "MODEL_TRAINED",
+            "risk_level": MODE_ACTIVE,
+            "lock_required": False,
+            "windows_locked": False,
+            "profile_update_allowed": False,
+        }
+
+        return {
+            "ml_output": ml_output,
+            "risk": None,
+            "response": response,
+        }
 
     @staticmethod
     def _record_response(db, session_id, response, timestamp):
