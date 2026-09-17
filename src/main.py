@@ -1,19 +1,29 @@
 import os
+import sys
 import time
+
+from PySide6.QtWidgets import QApplication
 
 from src.local_agent.integration.pipeline import SentinelPipeline
 from src.local_agent.local_behavior_pipeline import LocalBehaviorPipeline
+from src.local_agent.response.admin_unlock import AdminUnlockDialog
 
 
 DEFAULT_SAMPLE_INTERVAL = 15
 DEFAULT_USER_ID = 1
+DEFAULT_RECOVERY_GRACE_SECONDS = 60
 
 
 def main():
+    app = QApplication.instance() or QApplication(sys.argv)
     sample_interval = int(
         os.getenv("SENTINEL_SAMPLE_INTERVAL", DEFAULT_SAMPLE_INTERVAL)
     )
     user_id = int(os.getenv("SENTINEL_USER_ID", DEFAULT_USER_ID))
+    recovery_grace_seconds = max(
+        0,
+        int(os.getenv("SENTINEL_RECOVERY_GRACE_SECONDS", DEFAULT_RECOVERY_GRACE_SECONDS)),
+    )
 
     local_behavior_pipeline = LocalBehaviorPipeline()
     sentinel_pipeline = SentinelPipeline()
@@ -56,6 +66,20 @@ def main():
 
             print("\n--- Sentinel Pipeline Result ---")
             print(result)
+
+            if result["response"]["lock_required"]:
+                recovery = AdminUnlockDialog(sentinel_pipeline.behavioral_lock)
+                recovery.exec()
+                # Do not analyze keystrokes/mouse activity used during recovery.
+                local_behavior_pipeline.event_buffer.get_and_clear_events()
+                last_sample_time = (
+                    time.time() + recovery_grace_seconds - sample_interval
+                )
+                print("Sentinel behavioral lock recovered by an administrator.")
+                print(
+                    f"Behavioral checks resume in {recovery_grace_seconds} seconds."
+                )
+                continue
 
             last_sample_time = current_time
 

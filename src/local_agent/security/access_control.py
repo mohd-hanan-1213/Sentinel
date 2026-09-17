@@ -60,8 +60,7 @@ class AccessController:
         """
         Authenticate a user for behavioral-lock recovery.
 
-        Successful Sentinel authentication is sufficient to recover
-        the behavioral lock.
+        Only an active administrator can recover the behavioral lock.
         """
 
         result = self.authenticate(
@@ -75,6 +74,16 @@ class AccessController:
                 allowed=False,
                 resource=self.BEHAVIORAL_LOCK,
                 message="Behavioral lock recovery denied.",
+            )
+
+        if result.role != self.ADMIN_ROLE:
+            return AccessResult(
+                allowed=False,
+                user_id=result.user_id,
+                username=result.username,
+                role=result.role,
+                resource=self.BEHAVIORAL_LOCK,
+                message="Administrator privileges are required to recover the behavioral lock.",
             )
 
         return AccessResult(
