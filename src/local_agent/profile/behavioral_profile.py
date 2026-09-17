@@ -28,10 +28,10 @@ class BehavioralProfile:
     def add_sample(self, features):
 
         if not isinstance(features, (list, tuple)):
-            return
+            return False
 
-        # if len(features) != len(self.FEATURE_NAMES):
-        #     return
+        if len(features) != len(self.FEATURE_NAMES):
+            return False
 
         sample = []
 
@@ -43,6 +43,8 @@ class BehavioralProfile:
                 sample.append(0.0)
 
         self.samples.append(sample)
+
+        return True
 
     def sample_count(self):
         """
