@@ -183,7 +183,9 @@ class AuditLog(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    admin_id: Mapped[int, nullable=False]
+    admin_id: Mapped[int] = mapped_column(
+    ForeignKey("users.id"), nullable=False
+    )
 
     timestamp: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, nullable=False
