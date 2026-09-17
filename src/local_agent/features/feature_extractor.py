@@ -5,7 +5,7 @@ class FeatureExtractor:
 
     # Movement below this distance is treated as insignificant
     # when calculating direction changes.
-    MIN_MOVEMENT_DISTANCE = 1.0
+    MIN_MOVEMENT_DISTANCE = 0.001
 
     # A mouse movement gap greater than this is considered idle.
     IDLE_THRESHOLD = 1.0
@@ -13,15 +13,18 @@ class FeatureExtractor:
     def extract(self, events):
         """
 
-        Returns:
-            {
-                "keyboard": {
-                    ...
-                },
-                "mouse": {
-                    ...
-                }
-            }
+        1. keyboard.average_hold_time
+        2. keyboard.average_flight_time
+        3. keyboard.typing_speed
+        4. keyboard.average_pause_duration
+        5. keyboard.correction_rate
+        6. mouse.average_speed
+        7. mouse.average_distance
+        8. mouse.average_click_duration
+        9. mouse.average_acceleration
+        10. mouse.direction_changes
+        11. mouse.click_rate
+        12. mouse.idle_ratio
         """
 
         if not isinstance(events, list):
@@ -46,6 +49,10 @@ class FeatureExtractor:
             mouse_features["click_rate"],
             mouse_features["idle_ratio"],
         ]
+
+    # =========================================================
+    # EVENT PREPROCESSING
+    # =========================================================
 
     def _preprocess_events(self, events):
         """
@@ -78,6 +85,10 @@ class FeatureExtractor:
 
         return cleaned_events
 
+    # =========================================================
+    # KEYBOARD FEATURES
+    # =========================================================
+
     def _extract_keyboard_features(self, events):
 
         hold_times = []
@@ -95,6 +106,10 @@ class FeatureExtractor:
             data = event.get("data", {})
             timestamp = event.get("timestamp")
 
+            # -------------------------------------------------
+            # KEYBOARD HOLD
+            # -------------------------------------------------
+
             if event_type == "keyboard_hold":
 
                 hold_time = data.get("hold_time")
@@ -103,6 +118,10 @@ class FeatureExtractor:
 
                     hold_times.append(float(hold_time))
                     keyboard_activity_times.append(timestamp)
+
+            # -------------------------------------------------
+            # KEYBOARD FLIGHT
+            # -------------------------------------------------
 
             elif event_type == "keyboard_flight":
 
@@ -113,6 +132,10 @@ class FeatureExtractor:
                     flight_times.append(float(flight_time))
                     keyboard_activity_times.append(timestamp)
 
+            # -------------------------------------------------
+            # KEYBOARD PAUSE
+            # -------------------------------------------------
+
             elif event_type == "keyboard_pause":
 
                 pause_duration = data.get("pause_duration")
@@ -120,35 +143,44 @@ class FeatureExtractor:
                 if self._valid_value(pause_duration):
 
                     pause_durations.append(float(pause_duration))
-
                     keyboard_activity_times.append(timestamp)
+
+            # -------------------------------------------------
+            # KEYBOARD PRESS
+            # -------------------------------------------------
 
             elif event_type == "keyboard_press":
 
                 keyboard_action_count += 1
                 keyboard_activity_times.append(timestamp)
 
+                # The keyboard collector provides a boolean
+                # indicating whether this press was a correction.
                 #
-                # data = {
-                #     "key": "Key.space"
-                # }
-                #
-                # We don't store the actual typed content.
-                key = data.get("key")
+                # We do NOT store the actual typed character
+                # or key identity.
 
-                if isinstance(key, str):
+                is_correction = data.get("is_correction", False)
 
-                    key_lower = key.lower()
+                if is_correction is True:
+                    correction_count += 1
 
-                    if "backspace" in key_lower or "delete" in key_lower:
-                        correction_count += 1
+        # -----------------------------------------------------
+        # TYPING SPEED
+        # -----------------------------------------------------
 
         typing_speed = self._calculate_typing_speed(
-            keyboard_activity_times, keyboard_action_count
+            keyboard_activity_times,
+            keyboard_action_count
         )
 
+        # -----------------------------------------------------
+        # CORRECTION RATE
+        # -----------------------------------------------------
+
         correction_rate = self._calculate_correction_rate(
-            correction_count, keyboard_action_count
+            correction_count,
+            keyboard_action_count
         )
 
         return {
@@ -158,6 +190,10 @@ class FeatureExtractor:
             "average_pause_duration": self._average(pause_durations),
             "correction_rate": correction_rate,
         }
+
+    # =========================================================
+    # TYPING SPEED
+    # =========================================================
 
     def _calculate_typing_speed(self, timestamps, key_count):
 
@@ -177,12 +213,24 @@ class FeatureExtractor:
 
         return key_count / duration
 
-    def _calculate_correction_rate(self, correction_count, keyboard_action_count):
+    # =========================================================
+    # CORRECTION RATE
+    # =========================================================
+
+    def _calculate_correction_rate(
+        self,
+        correction_count,
+        keyboard_action_count
+    ):
 
         if keyboard_action_count <= 0:
             return 0.0
 
         return correction_count / keyboard_action_count
+
+    # =========================================================
+    # MOUSE FEATURES
+    # =========================================================
 
     def _extract_mouse_features(self, events):
 
@@ -203,6 +251,10 @@ class FeatureExtractor:
             event_type = event.get("event_type")
             data = event.get("data", {})
             timestamp = event.get("timestamp")
+
+            # -------------------------------------------------
+            # MOUSE MOVE
+            # -------------------------------------------------
 
             if event_type == "mouse_move":
 
@@ -235,11 +287,26 @@ class FeatureExtractor:
                         }
                     )
 
-                    mouse_activity_timestamps.append(float(timestamp))
+                    mouse_activity_timestamps.append(
+                        float(timestamp)
+                    )
 
-                    if self._valid_value(x) and self._valid_value(y):
+                    if (
+                        self._valid_value(x)
+                        and self._valid_value(y)
+                    ):
 
-                        direction_vectors.append((float(x), float(y), distance))
+                        direction_vectors.append(
+                            (
+                                float(x),
+                                float(y),
+                                distance
+                            )
+                        )
+
+            # -------------------------------------------------
+            # MOUSE CLICK RELEASE
+            # -------------------------------------------------
 
             elif event_type == "mouse_click_release":
 
@@ -247,42 +314,84 @@ class FeatureExtractor:
 
                 if self._valid_value(click_duration):
 
-                    click_durations.append(float(click_duration))
+                    click_durations.append(
+                        float(click_duration)
+                    )
 
+                # Count the click only once.
+                # The release event represents the completed click.
                 click_timestamps.append(float(timestamp))
 
-                mouse_activity_timestamps.append(float(timestamp))
+                mouse_activity_timestamps.append(
+                    float(timestamp)
+                )
+
+            # -------------------------------------------------
+            # MOUSE CLICK PRESS
+            # -------------------------------------------------
 
             elif event_type == "mouse_click_press":
 
-                click_timestamps.append(float(timestamp))
+                mouse_activity_timestamps.append(
+                    float(timestamp)
+                )
 
-                mouse_activity_timestamps.append(float(timestamp))
+            # -------------------------------------------------
+            # MOUSE SCROLL
+            # -------------------------------------------------
 
             elif event_type == "mouse_scroll":
 
-                mouse_activity_timestamps.append(float(timestamp))
+                mouse_activity_timestamps.append(
+                    float(timestamp)
+                )
 
-        average_acceleration = self._calculate_average_acceleration(movement_records)
+        # -----------------------------------------------------
+        # DERIVED MOUSE FEATURES
+        # -----------------------------------------------------
 
-        direction_changes = self._calculate_direction_changes(direction_vectors)
+        average_acceleration = (
+            self._calculate_average_acceleration(
+                movement_records
+            )
+        )
 
-        click_rate = self._calculate_click_rate(click_timestamps)
+        direction_changes = (
+            self._calculate_direction_changes(
+                direction_vectors
+            )
+        )
 
-        idle_ratio = self._calculate_idle_ratio(events)
+        click_rate = self._calculate_click_rate(
+            click_timestamps
+        )
+
+        idle_ratio = self._calculate_idle_ratio(
+            mouse_activity_timestamps
+        )
 
         return {
             "average_speed": self._average(speeds),
             "average_distance": self._average(distances),
-            "average_click_duration": self._average(click_durations),
+            "average_click_duration": self._average(
+                click_durations
+            ),
             "average_acceleration": average_acceleration,
             "direction_changes": direction_changes,
             "click_rate": click_rate,
             "idle_ratio": idle_ratio,
         }
 
-    def _calculate_average_acceleration(self, movement_records):
+    # =========================================================
+    # MOUSE ACCELERATION
+    # =========================================================
+
+    def _calculate_average_acceleration(
+        self,
+        movement_records
+    ):
         """
+        Calculate average mouse acceleration.
 
         acceleration =
             change in speed / change in time
@@ -297,15 +406,25 @@ class FeatureExtractor:
 
         for current in movement_records[1:]:
 
-            time_difference = current["timestamp"] - previous["timestamp"]
+            time_difference = (
+                current["timestamp"]
+                - previous["timestamp"]
+            )
 
             if time_difference <= 0:
+
                 previous = current
                 continue
 
-            speed_difference = current["speed"] - previous["speed"]
+            speed_difference = (
+                current["speed"]
+                - previous["speed"]
+            )
 
-            acceleration = abs(speed_difference) / time_difference
+            acceleration = (
+                abs(speed_difference)
+                / time_difference
+            )
 
             if math.isfinite(acceleration):
 
@@ -315,12 +434,20 @@ class FeatureExtractor:
 
         return self._average(accelerations)
 
-    def _calculate_direction_changes(self, direction_vectors):
+    # =========================================================
+    # DIRECTION CHANGES
+    # =========================================================
+
+    def _calculate_direction_changes(
+        self,
+        direction_vectors
+    ):
 
         if len(direction_vectors) < 3:
             return 0
 
         # Convert positions into movement vectors.
+
         vectors = []
 
         previous_x, previous_y, _ = direction_vectors[0]
@@ -330,11 +457,16 @@ class FeatureExtractor:
             dx = x - previous_x
             dy = y - previous_y
 
-            movement_distance = math.hypot(dx, dy)
+            movement_distance = math.hypot(
+                dx,
+                dy
+            )
 
             if movement_distance >= self.MIN_MOVEMENT_DISTANCE:
 
-                vectors.append((dx, dy))
+                vectors.append(
+                    (dx, dy)
+                )
 
             previous_x = x
             previous_y = y
@@ -348,19 +480,34 @@ class FeatureExtractor:
 
         for dx, dy in vectors[1:]:
 
-            previous_angle = math.atan2(previous_dy, previous_dx)
+            previous_angle = math.atan2(
+                previous_dy,
+                previous_dx
+            )
 
-            current_angle = math.atan2(dy, dx)
+            current_angle = math.atan2(
+                dy,
+                dx
+            )
 
-            angle_difference = abs(current_angle - previous_angle)
+            angle_difference = abs(
+                current_angle - previous_angle
+            )
 
             # Normalize angle difference to [0, pi].
-            if angle_difference > math.pi:
-                angle_difference = 2 * math.pi - angle_difference
 
-            # A change greater than 45 degrees.
+            if angle_difference > math.pi:
+
+                angle_difference = (
+                    2 * math.pi
+                    - angle_difference
+                )
+
+            # A change greater than 45 degrees
             # is treated as a direction change.
+
             if angle_difference >= math.pi / 4:
+
                 direction_changes += 1
 
             previous_dx = dx
@@ -368,7 +515,14 @@ class FeatureExtractor:
 
         return direction_changes
 
-    def _calculate_click_rate(self, click_timestamps):
+    # =========================================================
+    # CLICK RATE
+    # =========================================================
+
+    def _calculate_click_rate(
+        self,
+        click_timestamps
+    ):
 
         if not click_timestamps:
             return 0.0
@@ -390,20 +544,16 @@ class FeatureExtractor:
     # IDLE RATIO
     # =========================================================
 
-    def _calculate_idle_ratio(self, events):
+    def _calculate_idle_ratio(self, timestamps):
 
-        if len(events) < 2:
+        if len(timestamps) < 2:
             return 0.0
 
-        timestamps = []
-
-        for event in events:
-
-            timestamp = event.get("timestamp")
-
-            if self._valid_value(timestamp):
-
-                timestamps.append(float(timestamp))
+        timestamps = [
+            float(timestamp)
+            for timestamp in timestamps
+            if self._valid_value(timestamp)
+        ]
 
         if len(timestamps) < 2:
             return 0.0
@@ -417,18 +567,21 @@ class FeatureExtractor:
 
         idle_duration = 0.0
 
-        for previous, current in zip(timestamps, timestamps[1:]):
-
+        for previous, current in zip(
+            timestamps,
+            timestamps[1:]
+        ):
             gap = current - previous
 
             if gap > self.IDLE_THRESHOLD:
-
                 idle_duration += gap
 
         idle_ratio = idle_duration / total_duration
 
-        # Keep the value within [0, 1].
-        return min(max(idle_ratio, 0.0), 1.0)
+        return min(
+            max(idle_ratio, 0.0),
+            1.0
+        )
 
     @staticmethod
     def _average(values):
@@ -440,13 +593,19 @@ class FeatureExtractor:
             return 0.0
 
         valid_values = [
-            float(value) for value in values if FeatureExtractor._valid_value(value)
+            float(value)
+            for value in values
+            if FeatureExtractor._valid_value(value)
         ]
 
         if not valid_values:
             return 0.0
 
         return sum(valid_values) / len(valid_values)
+
+    # =========================================================
+    # VALUE VALIDATION
+    # =========================================================
 
     @staticmethod
     def _valid_value(value):
@@ -469,4 +628,64 @@ class FeatureExtractor:
 
         return True
 
-    # __main__ for testing
+
+# =============================================================
+# TEST
+# =============================================================
+
+if __name__ == "__main__":
+
+    extractor = FeatureExtractor()
+
+    test_events = [
+        {
+            "event_type": "keyboard_press",
+            "timestamp": 1.0,
+            "data": {
+                "is_correction": False
+            }
+        },
+        {
+            "event_type": "keyboard_hold",
+            "timestamp": 1.1,
+            "data": {
+                "hold_time": 0.1
+            }
+        },
+        {
+            "event_type": "keyboard_press",
+            "timestamp": 1.2,
+            "data": {
+                "is_correction": True
+            }
+        },
+        {
+            "event_type": "keyboard_hold",
+            "timestamp": 1.3,
+            "data": {
+                "hold_time": 0.1
+            }
+        },
+        {
+            "event_type": "keyboard_press",
+            "timestamp": 1.4,
+            "data": {
+                "is_correction": False
+            }
+        },
+        {
+            "event_type": "keyboard_hold",
+            "timestamp": 1.5,
+            "data": {
+                "hold_time": 0.1
+            }
+        },
+    ]
+
+    feature_vector = extractor.extract(test_events)
+
+    print("Feature vector:")
+    print(feature_vector)
+
+    print("\nCorrection rate:")
+    print(feature_vector[4])
