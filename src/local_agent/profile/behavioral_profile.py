@@ -30,8 +30,8 @@ class BehavioralProfile:
         if not isinstance(features, (list, tuple)):
             return
 
-        if len(features) != len(self.FEATURE_NAMES):
-            return
+        # if len(features) != len(self.FEATURE_NAMES):
+        #     return
 
         sample = []
 
@@ -97,8 +97,24 @@ class BehavioralProfile:
 
         return list(self.samples)
 
-    def get_feature_vector(self):
-        return self.get_baseline()
+    def get_feature_vector(self, sample_index=-1):
+        """
+        Return the feature vector for one behavioral sample.
+
+        By default, returns the most recently added sample.
+        """
+
+        if not self.samples:
+            return None
+
+        return list(self.samples[sample_index])
+
+    def get_sample_vectors(self):
+        """
+        Return all behavioral sample vectors.
+        """
+
+        return [list(sample) for sample in self.samples]
 
     def get_feature_names(self):
 
