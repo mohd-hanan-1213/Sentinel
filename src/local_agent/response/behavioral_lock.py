@@ -67,28 +67,26 @@ class BehavioralLock:
         """
         return self.state.value
 
-    def recover(
-        self,
-        username: str,
-        password: str,
-    ) -> bool:
+    def recover(self, username, password):
         """
-        Attempt behavioral-lock recovery using Sentinel authentication.
+        Authenticate the user using Sentinel authentication.
 
-        A successful Sentinel authentication unlocks the session.
-        A failed authentication leaves the session locked.
+        Returns:
+            AccessResult from AccessController.
         """
 
         if not self.is_locked():
-            return True
+            return self.access_controller.authorize_behavioral_lock_recovery(
+                username,
+                password,
+            )
 
         result = self.access_controller.authorize_behavioral_lock_recovery(
-            username=username,
-            password=password,
+            username,
+            password,
         )
 
         if result.allowed:
             self.unlock()
-            return True
 
-        return False
+        return result
