@@ -5,7 +5,7 @@ from src.ml.feature_contract import (
 )
 
 
-MIN_ENROLLMENT_SAMPLES = 30
+MIN_ENROLLMENT_SAMPLES = 15
 
 
 class ProfileBuilder:

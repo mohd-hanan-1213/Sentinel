@@ -59,10 +59,24 @@ class Keyboard_collector:
 
             self.event_callback(event)
 
+        # ------------------------------------------------------
+        # Correction detection
+        #
+        # Only record whether the key is a correction key.
+        # Do NOT store the actual typed character.
+        # ------------------------------------------------------
+
+        is_correction = (
+            key == keyboard.Key.backspace
+            or key == keyboard.Key.delete
+        )
+
         event = {
             "event_type": "keyboard_press",
             "timestamp": timestamp,
-            "data": {}
+            "data": {
+                "is_correction": is_correction
+            }
         }
 
         self.event_callback(event)

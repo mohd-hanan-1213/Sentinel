@@ -4,13 +4,11 @@ import math
 class BehavioralProfile:
 
     FEATURE_NAMES = [
-
         "keyboard.average_hold_time",
         "keyboard.average_flight_time",
         "keyboard.typing_speed",
         "keyboard.average_pause_duration",
         "keyboard.correction_rate",
-
         "mouse.average_speed",
         "mouse.average_distance",
         "mouse.average_click_duration",
@@ -28,93 +26,25 @@ class BehavioralProfile:
         self.samples = []
 
     def add_sample(self, features):
-        """
-        Add one behavioral feature vector to the profile.
 
-        Missing or invalid values are converted to 0.0.
-        """
+        if not isinstance(features, (list, tuple)):
+            return False
 
-        sample = {
-            "keyboard": {
+        if len(features) != len(self.FEATURE_NAMES):
+            return False
 
-                "average_hold_time": self._get_feature(
-                    features,
-                    "keyboard",
-                    "average_hold_time"
-                ),
+        sample = []
 
-                "average_flight_time": self._get_feature(
-                    features,
-                    "keyboard",
-                    "average_flight_time"
-                ),
+        for value in features:
 
-                "typing_speed": self._get_feature(
-                    features,
-                    "keyboard",
-                    "typing_speed"
-                ),
-
-                "average_pause_duration": self._get_feature(
-                    features,
-                    "keyboard",
-                    "average_pause_duration"
-                ),
-
-                "correction_rate": self._get_feature(
-                    features,
-                    "keyboard",
-                    "correction_rate"
-                ),
-            },
-
-            "mouse": {
-
-                "average_speed": self._get_feature(
-                    features,
-                    "mouse",
-                    "average_speed"
-                ),
-
-                "average_distance": self._get_feature(
-                    features,
-                    "mouse",
-                    "average_distance"
-                ),
-
-                "average_click_duration": self._get_feature(
-                    features,
-                    "mouse",
-                    "average_click_duration"
-                ),
-
-                "average_acceleration": self._get_feature(
-                    features,
-                    "mouse",
-                    "average_acceleration"
-                ),
-
-                "direction_changes": self._get_feature(
-                    features,
-                    "mouse",
-                    "direction_changes"
-                ),
-
-                "click_rate": self._get_feature(
-                    features,
-                    "mouse",
-                    "click_rate"
-                ),
-
-                "idle_ratio": self._get_feature(
-                    features,
-                    "mouse",
-                    "idle_ratio"
-                ),
-            }
-        }
+            if self._valid_value(value):
+                sample.append(float(value))
+            else:
+                sample.append(0.0)
 
         self.samples.append(sample)
+
+        return True
 
     def sample_count(self):
         """
@@ -124,163 +54,41 @@ class BehavioralProfile:
         return len(self.samples)
 
     def get_baseline(self):
-        """
-        Return the mean value of every behavioral feature.
-        """
 
         if not self.samples:
             return None
 
-        baseline = {
+        feature_count = len(self.FEATURE_NAMES)
 
-            "keyboard": {
+        baseline = []
 
-                "average_hold_time": 0.0,
+        for i in range(feature_count):
 
-                "average_flight_time": 0.0,
+            values = [sample[i] for sample in self.samples]
 
-                "typing_speed": 0.0,
-
-                "average_pause_duration": 0.0,
-
-                "correction_rate": 0.0,
-            },
-
-            "mouse": {
-
-                "average_speed": 0.0,
-
-                "average_distance": 0.0,
-
-                "average_click_duration": 0.0,
-
-                "average_acceleration": 0.0,
-
-                "direction_changes": 0.0,
-
-                "click_rate": 0.0,
-
-                "idle_ratio": 0.0,
-            }
-        }
-
-        count = len(self.samples)
-
-        for sample in self.samples:
-
-            for feature in baseline["keyboard"]:
-
-                baseline["keyboard"][feature] += (
-                    sample["keyboard"][feature]
-                )
-
-            for feature in baseline["mouse"]:
-
-                baseline["mouse"][feature] += (
-                    sample["mouse"][feature]
-                )
-
-        for category in baseline:
-
-            for feature in baseline[category]:
-
-                baseline[category][feature] /= count
+            baseline.append(sum(values) / len(values))
 
         return baseline
 
     def get_statistics(self):
-        """
-
-        Returns:
-
-        {
-            "keyboard": {
-                "feature": {
-                    "mean": ...,
-                    "std_dev": ...,
-                    "sample_count": ...
-                }
-            },
-
-            "mouse": {
-                ...
-            }
-        }
-        """
 
         if not self.samples:
             return None
 
-        statistics = {
-            "keyboard": {},
-            "mouse": {}
-        }
+        statistics = {}
 
-        for feature in self.samples[0]["keyboard"]:
+        for i, feature_name in enumerate(self.FEATURE_NAMES):
 
-            values = [
-                sample["keyboard"][feature]
-                for sample in self.samples
-                if self._valid_value(
-                    sample["keyboard"][feature]
-                )
-            ]
+            values = [sample[i] for sample in self.samples]
 
-            if values:
+            mean = self._mean(values)
+            std_dev = self._population_std(values, mean)
 
-                mean = self._mean(values)
-
-                std_dev = self._population_std(
-                    values,
-                    mean
-                )
-
-                statistics["keyboard"][feature] = {
-                    "mean": mean,
-                    "std_dev": std_dev,
-                    "sample_count": len(values)
-                }
-
-            else:
-
-                statistics["keyboard"][feature] = {
-                    "mean": None,
-                    "std_dev": None,
-                    "sample_count": 0
-                }
-
-        for feature in self.samples[0]["mouse"]:
-
-            values = [
-                sample["mouse"][feature]
-                for sample in self.samples
-                if self._valid_value(
-                    sample["mouse"][feature]
-                )
-            ]
-
-            if values:
-
-                mean = self._mean(values)
-
-                std_dev = self._population_std(
-                    values,
-                    mean
-                )
-
-                statistics["mouse"][feature] = {
-                    "mean": mean,
-                    "std_dev": std_dev,
-                    "sample_count": len(values)
-                }
-
-            else:
-
-                statistics["mouse"][feature] = {
-                    "mean": None,
-                    "std_dev": None,
-                    "sample_count": 0
-                }
+            statistics[feature_name] = {
+                "mean": mean,
+                "std_dev": std_dev,
+                "sample_count": len(values),
+            }
 
         return statistics
 
@@ -291,65 +99,74 @@ class BehavioralProfile:
 
         return list(self.samples)
 
-    def get_feature_vector(self):
+    def get_feature_vector(self, sample_index=-1):
+        """
+        Return the feature vector for one behavioral sample.
 
-        baseline = self.get_baseline()
+        By default, returns the most recently added sample.
+        """
 
-        if baseline is None:
+        if not self.samples:
             return None
 
-        vector = []
+        return list(self.samples[sample_index])
 
-        for feature_name in self.FEATURE_NAMES:
+    def get_sample_vectors(self):
+        """
+        Return all behavioral sample vectors.
+        """
 
-            category, feature = feature_name.split(
-                ".",
-                1
-            )
-
-            value = baseline[category][feature]
-
-            if not self._valid_value(value):
-                value = 0.0
-
-            vector.append(float(value))
-
-        return vector
+        return [list(sample) for sample in self.samples]
 
     def get_feature_names(self):
 
         return list(self.FEATURE_NAMES)
 
     @staticmethod
-    def _get_feature(
-        features,
-        category,
-        feature
-    ):
+    def _get_feature(features, category, feature):
+
+        if isinstance(features, (list, tuple)):
+
+            feature_name = f"{category}.{feature}"
+
+            try:
+                feature_index = BehavioralProfile.FEATURE_NAMES.index(feature_name)
+            except ValueError:
+                return 0.0
+
+            if feature_index >= len(features):
+                return 0.0
+
+            value = features[feature_index]
+
+            if value is None:
+                return 0.0
+
+            if not isinstance(value, (int, float)):
+                return 0.0
+
+            if not math.isfinite(value):
+                return 0.0
+
+            if value < 0:
+                return 0.0
+
+            return float(value)
 
         if not isinstance(features, dict):
             return 0.0
 
-        category_data = features.get(
-            category,
-            {}
-        )
+        category_data = features.get(category, {})
 
         if not isinstance(category_data, dict):
             return 0.0
 
-        value = category_data.get(
-            feature,
-            0.0
-        )
+        value = category_data.get(feature, 0.0)
 
         if value is None:
             return 0.0
 
-        if not isinstance(
-            value,
-            (int, float)
-        ):
+        if not isinstance(value, (int, float)):
             return 0.0
 
         if not math.isfinite(value):
@@ -370,10 +187,7 @@ class BehavioralProfile:
         if value is None:
             return False
 
-        if not isinstance(
-            value,
-            (int, float)
-        ):
+        if not isinstance(value, (int, float)):
             return False
 
         if not math.isfinite(value):
@@ -396,17 +210,11 @@ class BehavioralProfile:
         return sum(values) / len(values)
 
     @staticmethod
-    def _population_std(
-        values,
-        mean
-    ):
+    def _population_std(values, mean):
 
         if not values:
             return 0.0
 
-        variance = sum(
-            (value - mean) ** 2
-            for value in values
-        ) / len(values)
+        variance = sum((value - mean) ** 2 for value in values) / len(values)
 
         return math.sqrt(variance)
