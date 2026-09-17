@@ -1,6 +1,6 @@
 """Webcam evidence capture and encrypted evidence-file lifecycle."""
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 import os
 
@@ -9,16 +9,15 @@ from src.local_agent.security.encryption import EncryptionManager
 
 class CameraEvidenceService:
     def __init__(self, storage_dir="data/evidence", camera_index=0,
-                 encryption_manager=None, retention_days=30):
+                 encryption_manager=None):
         self.storage_dir = Path(storage_dir)
         self.camera_index = camera_index
         self.encryption_manager = encryption_manager or EncryptionManager()
-        self.retention_days = retention_days
 
     def camera_available(self):
         """Return whether the configured webcam can be opened right now."""
         import cv2
-        camera = cv2.VideoCapture(self.camera_index)
+        camera = self._open_camera(cv2)
         try:
             return bool(camera.isOpened())
         finally:
@@ -32,7 +31,7 @@ class CameraEvidenceService:
         stem = timestamp.strftime("%Y%m%dT%H%M%S_%f")
         plain_path = self.storage_dir / f"{stem}.jpg"
         encrypted_path = self.storage_dir / f"{stem}.jpg.fernet"
-        camera = cv2.VideoCapture(self.camera_index)
+        camera = self._open_camera(cv2)
         try:
             if not camera.isOpened():
                 return None
@@ -49,8 +48,15 @@ class CameraEvidenceService:
             if plain_path.exists():
                 plain_path.unlink()
 
-    def expires_at(self, captured_at):
-        return captured_at + timedelta(days=self.retention_days)
+    def _open_camera(self, cv2):
+        """Try the Windows camera backends before OpenCV's generic fallback."""
+        if os.name == "nt":
+            for backend in (cv2.CAP_DSHOW, cv2.CAP_MSMF):
+                camera = cv2.VideoCapture(self.camera_index, backend)
+                if camera.isOpened():
+                    return camera
+                camera.release()
+        return cv2.VideoCapture(self.camera_index)
 
     @staticmethod
     def delete_file(file_reference):

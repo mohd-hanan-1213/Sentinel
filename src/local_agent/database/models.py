@@ -177,8 +177,10 @@ class Evidence(Base):
         String(30), nullable=False
     )
 
-    expires_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False
+    # Evidence is retained until an administrator explicitly deletes it.
+    # Kept for compatibility with earlier databases; new records use NULL.
+    expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime, nullable=True
     )
 
 

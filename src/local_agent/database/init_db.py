@@ -16,7 +16,11 @@ def _apply_schema_upgrades():
         connection.execute(text(
             "ALTER TABLE evidence "
             "ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP "
-            "NOT NULL DEFAULT CURRENT_TIMESTAMP"
+            "NULL"
+        ))
+        connection.execute(text(
+            "ALTER TABLE evidence "
+            "ALTER COLUMN expires_at DROP NOT NULL"
         ))
 
 

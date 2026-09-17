@@ -17,6 +17,7 @@ src/local_agent/security/sentinel.key
 # Database / local generated files
 *.sqlite
 *.db
+data/
 
 # IDE files
 .vscode/
@@ -30,3 +31,4 @@ Thumbs.db
 
 # Tests
 tests/
+src/local_agent/manual_member4_demo.py

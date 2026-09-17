@@ -2,8 +2,6 @@
 
 from datetime import datetime
 
-from sqlalchemy import select
-
 from src.local_agent.camera.evidence import CameraEvidenceService
 from src.local_agent.database.connection import SessionLocal
 from src.local_agent.database.models import Evidence, RiskEvent, SecurityEvent, Session
@@ -89,18 +87,6 @@ class SentinelPipeline:
             response["windows_locked"] = False
         return {"ml_output": ml_output, "risk": risk_result, "response": response}
 
-    def purge_expired_evidence(self, now=None):
-        now = now or datetime.utcnow()
-        removed = 0
-        with SessionLocal() as db:
-            expired = db.scalars(select(Evidence).where(Evidence.expires_at <= now)).all()
-            for evidence in expired:
-                self.camera_service.delete_file(evidence.file_reference)
-                db.delete(evidence)
-                removed += 1
-            db.commit()
-        return removed
-
     @staticmethod
     def _record_response(db, session_id, response, timestamp):
         db.add(SecurityEvent(
@@ -120,5 +106,5 @@ class SentinelPipeline:
         db.add(Evidence(
             session_id=session_id, risk_event_id=risk_event_id, timestamp=timestamp,
             evidence_type="WEBCAM_IMAGE", file_reference=str(encrypted_path),
-            encryption_status="FERNET", expires_at=self.camera_service.expires_at(timestamp),
+            encryption_status="FERNET", expires_at=None,
         ))
