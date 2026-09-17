@@ -55,10 +55,12 @@ class RiskEngine:
         # 1. Update temporal history
         # --------------------------------------------------
 
+        # Member 3 owns its deviation-history calculation and supplies the
+        # result as part of the cross-team contract. Keep a local history for
+        # diagnostics, but do not silently replace that value.
         self.temporal_analyzer.update(anomaly_score)
-
-        recent_anomaly_average = (
-            self.temporal_analyzer.recent_average()
+        recent_anomaly_average = self._clamp(
+            ml_output["recent_anomaly_average"]
         )
 
         # --------------------------------------------------

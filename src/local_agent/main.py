@@ -1,3 +1,4 @@
+import os
 import time
 
 from src.local_agent.collector.keyboard_collector import Keyboard_collector
@@ -5,6 +6,7 @@ from src.local_agent.collector.mouse_collector import Mouse_collector
 from src.local_agent.buffer.event_buffer import EventBuffer
 from src.local_agent.features.feature_extractor import FeatureExtractor
 from src.local_agent.profile.behavioral_profile import BehavioralProfile
+from src.local_agent.integration.pipeline import SentinelPipeline
 
 
 SAMPLE_INTERVAL = 30
@@ -16,6 +18,12 @@ def main():
     event_buffer = EventBuffer()
     feature_extractor = FeatureExtractor()
     behavioral_profile = BehavioralProfile()
+    pipeline = None
+    session_id = None
+    user_id = os.getenv("SENTINEL_USER_ID")
+    if user_id:
+        pipeline = SentinelPipeline()
+        session_id = pipeline.start_session(int(user_id))
 
     def handle_event(event):
         event_buffer.add_event(event)
@@ -61,6 +69,11 @@ def main():
                     # --------------------------------------------------
 
                     behavioral_profile.add_sample(features)
+
+                    if pipeline is not None:
+                        decision = pipeline.process_features(session_id, features)
+                        print("\n--- Security Decision ---")
+                        print(decision["response"])
 
                     print("\n--- Behavioral Sample ---")
                     print(features)

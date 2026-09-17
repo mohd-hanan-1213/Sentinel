@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from cryptography.fernet import Fernet
@@ -10,8 +11,12 @@ class EncryptionManager:
     The Fernet key must be stored outside the source code.
     """
 
-    def __init__(self, key_path: str = "security/sentinel.key"):
-        self.key_path = Path(key_path)
+    def __init__(self, key_path: str | None = None):
+        configured_path = key_path or os.getenv(
+            "SENTINEL_KEY_PATH",
+            "data/secrets/sentinel.key",
+        )
+        self.key_path = Path(configured_path)
 
     def generate_key(self) -> bytes:
         """
@@ -31,6 +36,10 @@ class EncryptionManager:
         """
         Load the existing encryption key.
         """
+        environment_key = os.getenv("SENTINEL_FERNET_KEY")
+        if environment_key:
+            return environment_key.encode("utf-8")
+
         if not self.key_path.exists():
             raise FileNotFoundError(
                 f"Encryption key not found: {self.key_path}"
@@ -42,6 +51,9 @@ class EncryptionManager:
         """
         Generate and save a key if one does not already exist.
         """
+        if os.getenv("SENTINEL_FERNET_KEY"):
+            return
+
         if not self.key_path.exists():
             key = self.generate_key()
             self.save_key(key)

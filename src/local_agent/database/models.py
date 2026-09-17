@@ -177,6 +177,10 @@ class Evidence(Base):
         String(30), nullable=False
     )
 
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False
+    )
+
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"

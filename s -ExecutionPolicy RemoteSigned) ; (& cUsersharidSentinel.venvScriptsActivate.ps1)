@@ -1,0 +1,193 @@
+[33mcommit 07e2743b9e8a27b6f8a92986c92f77d517812619[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mhari[m[33m)[m
+Author: Hari <haridathan2005@gmail.com>
+Date:   Thu Sep 17 15:14:53 2026 +0530
+
+    initial member 4 work
+
+[33mcommit 62e23789a47629a4fb3938487b7b8f24ac8d9acf[m[33m ([m[1;31morigin/hari[m[33m)[m
+Author: Hari <haridathan2005@gmail.com>
+Date:   Tue Sep 15 16:30:45 2026 +0530
+
+    database
+
+[33mcommit ea42725d94c1c929d2e2b6a48bd42bf0dfe77a5d[m[33m ([m[1;32mmain[m[33m)[m
+Merge: 958b6c7 b714a08
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Tue Sep 8 22:35:36 2026 +0530
+
+    Merge pull request #3 from mohd-hanan-1213/aswin
+    
+    Aswin
+
+[33mcommit b714a081f1731d53b151623d3a27966b03a8e0d7[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Tue Sep 8 22:34:57 2026 +0530
+
+    updated the behavioral profile
+
+[33mcommit 9a6627b111e1c5f74b78092266f7cbaa3bec9818[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Tue Sep 8 22:33:20 2026 +0530
+
+    init file for behavioral profile
+
+[33mcommit 8eebcae3851ed1ff19669afb6eeb7728a31bd121[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Tue Sep 8 22:32:42 2026 +0530
+
+    added the new required features
+
+[33mcommit cc9f80719db0ce9ce04d2e7675168f6eb47ef12c[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Tue Sep 8 22:32:07 2026 +0530
+
+    init file for feature extraction
+
+[33mcommit 958b6c7b1b3e2e12d85dd4136bbb842fdd2cb2e6[m
+Merge: 46ced3a daac702
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Mon Sep 7 01:34:21 2026 +0530
+
+    Merge pull request #2 from mohd-hanan-1213/aswin
+    
+    Aswin
+
+[33mcommit daac70235904168bfddec146e547f31499add87c[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Mon Sep 7 01:28:05 2026 +0530
+
+    main file updated
+
+[33mcommit 55fe2bc51c21f954d5de09af90f4e90d7d197375[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Mon Sep 7 01:26:15 2026 +0530
+
+    final profile for users
+
+[33mcommit 68e4be1ca941c04ab5cad7597636e1aa6ced1973[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Mon Sep 7 01:24:08 2026 +0530
+
+    final feature extractor
+
+[33mcommit 4c2b0b6f2f64471e45cc19d4f84d08e8a8d6605a[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Mon Sep 7 01:19:44 2026 +0530
+
+    modified final event collector buffer
+
+[33mcommit 857da2079588c3d9531367517b210de29518e273[m
+Merge: e399ac7 db83044
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Mon Sep 7 01:18:02 2026 +0530
+
+    modified final mouse event collector
+
+[33mcommit e399ac74d50edf6874fe6922170f61e60bee43d7[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Mon Sep 7 01:16:08 2026 +0530
+
+    modified final mouse event collector
+
+[33mcommit db83044bf1a97c726f9507982ebf7db1cfa1659c[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Mon Sep 7 01:14:11 2026 +0530
+
+    Refactor mouse collector for improved state management
+
+[33mcommit c870e2ef009f83d39dd6c9e683c637a5e4756c59[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Mon Sep 7 01:09:51 2026 +0530
+
+    modified keyboard event collector
+
+[33mcommit dc1045d59a2930dc87e9d69861e8a3e039f8d5d0[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Mon Sep 7 01:08:38 2026 +0530
+
+    modified main file
+
+[33mcommit 4baee89441311c6b800955279c263aac52daa0d4[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Sat Sep 5 00:49:37 2026 +0530
+
+    Remove temporary print statement in handle_event
+    
+    Removed temporary print statement for event verification.
+
+[33mcommit 089896ede3ef66b4e658b2899b53685c658e7f01[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Sat Sep 5 00:48:37 2026 +0530
+
+    Integrated the collectors and the buffer
+
+[33mcommit 3a90cb7c330f65531eb4a30198763ea92ff827ab[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Sat Sep 5 00:47:25 2026 +0530
+
+    modified the buffer for events
+
+[33mcommit fd8a36aa74f65a73c2c4ebe65d170b86ae641ae9[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Fri Sep 4 18:24:41 2026 +0530
+
+    created the buffer for events
+
+[33mcommit 1c9720b47e623a713fd3a07a0cc895af056494e4[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Fri Sep 4 18:02:38 2026 +0530
+
+    updated mouse behaviour collection ,added distance,speed,click duration
+
+[33mcommit 46ced3a8b9e6f9732547ab8fb8d42113d7b288b6[m
+Merge: a758d34 3c80133
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Fri Sep 4 18:05:54 2026 +0530
+
+    Merge pull request #1 from mohd-hanan-1213/aswin
+    
+    Add local agent module structure
+
+[33mcommit 3c8013336bcb01b92ef2489ff7c4358f579a5c01[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Thu Sep 3 01:21:07 2026 +0530
+
+    Update keyboard_collector.py
+    
+    updated flight time logic
+
+[33mcommit 9dbfa411b30dfcc5acca7fc3afdbaa21262df018[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Wed Sep 2 22:26:30 2026 +0530
+
+    implement basic(update in progress) mouse behaviour collection
+
+[33mcommit 1c83862661a50e04dd699f4a4d8ae1e3a9c45812[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Wed Sep 2 22:15:50 2026 +0530
+
+    implement keyboard behaviour collection
+
+[33mcommit a0914814212edab4cc52e512d0f82ec4346871c5[m
+Author: Aswin K B <kottayilaswin14@gmail.com>
+Date:   Wed Sep 2 21:36:43 2026 +0530
+
+    Add local agent module structure
+
+[33mcommit a758d341cf20ded42873c706d8ebf394b1167366[m
+Author: Mohammed Hanan <anuhanan15@gmail.com>
+Date:   Wed Sep 2 20:19:23 2026 +0530
+
+    Created .gitignore
+
+[33mcommit b91f82b83fe356b36c199db03f0505b08165f576[m
+Author: Mohammed Hanan <anuhanan15@gmail.com>
+Date:   Wed Sep 2 20:18:10 2026 +0530
+
+    Added architecture
+
+[33mcommit 03e8a19dbff69299805b098870415419e8bba1f4[m
+Author: Mohammed Hanan <anuhanan15@gmail.com>
+Date:   Wed Sep 2 19:32:37 2026 +0530
+
+    Initial commit

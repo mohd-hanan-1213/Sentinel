@@ -1,6 +1,9 @@
 from enum import Enum
 
-from security.access_control import AccessController
+import ctypes
+import os
+
+from src.local_agent.security.access_control import AccessController
 
 
 class LockState(Enum):
@@ -25,6 +28,16 @@ class BehavioralLock:
         Activate the behavioral lock.
         """
         self.state = LockState.LOCKED
+
+    def lock_windows_session(self) -> bool:
+        """Lock Windows when supported; Sentinel's application lock remains."""
+        if os.name != "nt":
+            return False
+
+        try:
+            return bool(ctypes.windll.user32.LockWorkStation())
+        except (AttributeError, OSError):
+            return False
 
     def unlock(self) -> None:
         """

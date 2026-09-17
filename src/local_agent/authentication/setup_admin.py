@@ -1,8 +1,8 @@
 from getpass import getpass
 
-from authentication.password import PasswordManager
-from database.connection import SessionLocal
-from database.models import SentinelCredential, User
+from src.local_agent.authentication.password import PasswordManager
+from src.local_agent.database.connection import SessionLocal
+from src.local_agent.database.models import SentinelCredential, User
 
 
 def create_admin():

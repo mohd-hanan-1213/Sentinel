@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from authentication.sentinel_auth import (
+from src.local_agent.authentication.sentinel_auth import (
     SentinelAuthenticator,
     AuthenticationResult,
 )

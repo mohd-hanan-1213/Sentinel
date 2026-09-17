@@ -27,3 +27,6 @@ src/local_agent/security/sentinel.key
 Thumbs.db
 # Test cache
 .pytest_cache/
+
+# Tests
+tests/
