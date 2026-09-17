@@ -1,5 +1,38 @@
-*.png
-__pycache__/
-models/
+# Python virtual environments
+venv/
 .venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Sentinel encryption key
+src/local_agent/security/sentinel.key
+
+# Database / local generated files
+*.sqlite
+*.db
+data/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test cache
+.pytest_cache/
+
+#model
+models/
+
+# Tests
 tests/
+src/local_agent/manual_member4_demo.py
