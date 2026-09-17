@@ -4,16 +4,16 @@ from src.local_agent.collector.keyboard_collector import Keyboard_collector
 from src.local_agent.collector.mouse_collector import Mouse_collector
 from src.local_agent.buffer.event_buffer import EventBuffer
 from src.local_agent.features.feature_extractor import FeatureExtractor
-from src.local_agent.profile.behavioral_profile import BehavioralProfile
+from src.ml.authentication_pipeline import AuthenticationPipeline
 
-SAMPLE_INTERVAL = 30
+SAMPLE_INTERVAL = 15
 
 
 def main():
 
     event_buffer = EventBuffer()
     feature_extractor = FeatureExtractor()
-    behavioral_profile = BehavioralProfile()
+    authentication_pipeline = AuthenticationPipeline()
 
     def handle_event(event):
         event_buffer.add_event(event)
@@ -46,26 +46,26 @@ def main():
 
                 if events:
 
-                    features = feature_extractor.extract(events)
+                    feature_vector = feature_extractor.extract(events)
 
                     # --------------------------------------------------
-                    # Add behavioral sample
+                    # Process feature vector through Member 3 ML pipeline
                     # --------------------------------------------------
 
-                    behavioral_profile.add_sample(features)
+                    result = authentication_pipeline.process_feature_vector(
+                        feature_vector
+                    )
 
-                    print("\n--- Behavioral Sample ---")
-                    print(features)
+                    print("\n--- Behavioral Feature Vector ---")
+                    print(feature_vector)
 
-                    print("Samples:", behavioral_profile.sample_count())
+                    print("\n--- Member 3 Result ---")
+                    print(result)
 
-                    print("\nCurrent Baseline:")
-
-                    print(behavioral_profile.get_baseline())
-
-                    print("\nCurrent Statistics:")
-
-                    print(behavioral_profile.get_statistics())
+                    print(
+                        "Pipeline mode:",
+                        authentication_pipeline.get_mode()
+                    )
 
                 else:
 
@@ -88,15 +88,10 @@ def main():
         print("Sentinel stopped.")
         print("==============================")
 
-        print("Final samples:", behavioral_profile.sample_count())
-
-        print("\nFinal Behavioral Baseline:")
-
-        print(behavioral_profile.get_baseline())
-
-        print("\nFinal Behavioral Statistics:")
-
-        print(behavioral_profile.get_statistics())
+        print(
+            "Final pipeline mode:",
+            authentication_pipeline.get_mode()
+        )
 
 
 if __name__ == "__main__":
