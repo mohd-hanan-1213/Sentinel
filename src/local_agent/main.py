@@ -6,12 +6,10 @@ from src.local_agent.buffer.event_buffer import EventBuffer
 from src.local_agent.features.feature_extractor import FeatureExtractor
 from src.local_agent.profile.behavioral_profile import BehavioralProfile
 
-
 SAMPLE_INTERVAL = 30
 
 
 def main():
-
 
     event_buffer = EventBuffer()
     feature_extractor = FeatureExtractor()
@@ -28,10 +26,7 @@ def main():
 
     print("Sentinel local agent started.")
     print("Keyboard and mouse collection active.")
-    print(
-        f"Feature sampling interval: "
-        f"{SAMPLE_INTERVAL} seconds."
-    )
+    print(f"Feature sampling interval: " f"{SAMPLE_INTERVAL} seconds.")
     print("Press Ctrl+C to stop.")
 
     last_sample_time = time.time()
@@ -44,10 +39,7 @@ def main():
 
             current_time = time.time()
 
-            if (
-                current_time - last_sample_time
-                >= SAMPLE_INTERVAL
-            ):
+            if current_time - last_sample_time >= SAMPLE_INTERVAL:
 
                 # Get events for this sampling interval
                 events = event_buffer.get_and_clear_events()
@@ -65,29 +57,19 @@ def main():
                     print("\n--- Behavioral Sample ---")
                     print(features)
 
-                    print(
-                        "Samples:",
-                        behavioral_profile.sample_count()
-                    )
+                    print("Samples:", behavioral_profile.sample_count())
 
                     print("\nCurrent Baseline:")
 
-                    print(
-                        behavioral_profile.get_baseline()
-                    )
+                    print(behavioral_profile.get_baseline())
 
                     print("\nCurrent Statistics:")
 
-                    print(
-                        behavioral_profile.get_statistics()
-                    )
+                    print(behavioral_profile.get_statistics())
 
                 else:
 
-                    print(
-                        "\nNo events collected "
-                        "during interval."
-                    )
+                    print("\nNo events collected " "during interval.")
 
                 last_sample_time = current_time
 
@@ -106,22 +88,15 @@ def main():
         print("Sentinel stopped.")
         print("==============================")
 
-        print(
-            "Final samples:",
-            behavioral_profile.sample_count()
-        )
+        print("Final samples:", behavioral_profile.sample_count())
 
         print("\nFinal Behavioral Baseline:")
 
-        print(
-            behavioral_profile.get_baseline()
-        )
+        print(behavioral_profile.get_baseline())
 
         print("\nFinal Behavioral Statistics:")
 
-        print(
-            behavioral_profile.get_statistics()
-        )
+        print(behavioral_profile.get_statistics())
 
 
 if __name__ == "__main__":
