@@ -9,7 +9,7 @@ from src.local_agent.local_behavior_pipeline import LocalBehaviorPipeline
 from src.local_agent.response.admin_unlock import AdminUnlockDialog
 
 
-DEFAULT_SAMPLE_INTERVAL = 15
+DEFAULT_SAMPLE_INTERVAL = 30
 DEFAULT_USER_ID = 1
 DEFAULT_RECOVERY_GRACE_SECONDS = 60
 
